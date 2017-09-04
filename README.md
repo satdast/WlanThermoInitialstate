@@ -19,3 +19,15 @@ löschen der Zwischenspeicher Datei
 
 /eC=Path_to_file  
           External Credentials BenutzerDaten von externer Datei laden
+
+
+# ---------- depencies -----------------------
+run the following command to aktivate ISStreamer for Inital State:
+\curl -sSL https://get.initialstate.com/python -o - | sudo bash
+at console
+
+# run cyclic as cron job
+crontab -e
+ad:
+* * * * * /usr/bin/python ./WlanThermoInitialstate.py
+                           ad your path here

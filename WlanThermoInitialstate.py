@@ -4,36 +4,13 @@ import os
 import urllib2
 import json
 import mmap, codecs
+import ConfigParser
 from ISStreamer.Streamer import Streamer
 
-# --------- User Settings ---------
-BUCKET_NAME = "xxxxxxxxxxxxxxxx"
-BUCKET_KEY = "xxxxxxxxxxxxxxxx"
-ACCESS_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
-# --------- local Path ---------
-myfile='./WTdata.json'
-
-# --------- local Tags ---------
-force_data = False
-sendCPU = True
-sendPit = True
-
-# ---------- depencies -----------------------
-# run the following command to aktivate ISStreamer for Inital State:
-# \curl -sSL https://get.initialstate.com/python -o - | sudo bash
-# at console
-
-# run cyclic as cron job
-# crontab -e
-# ad:
-# * * * * * /usr/bin/python ./WlanThermoInitialstate.py
-#                           ad your path here
-
 # ---------- getting Data -----------------------
-def read_loc_json():
+def read_loc_json(jsonPath):
 	try: #pruefen der Datei und lesen des Inhaltes
-		with open(myfile) as f:
+		with open(jsonPath) as f:
 			data= json.load(f)
 	except IOError: # Wenn die Datei nicht vorhanden ist
 		print('File not exists!') # Meldung ausgeben
@@ -53,9 +30,10 @@ def delete_loc_json():
 		os.remove(myfile)
 	else:    ## Show an error ##
 		print("Error: %s file not found" % myfile)
+		exit()
 
-def get_values():
-    api_conditions_url = "http://localhost/app.php"
+def get_values(WL_URL):
+    api_conditions_url = str(WL_URL)
     try:
 		 f = urllib2.urlopen(api_conditions_url)
     except:
@@ -65,58 +43,63 @@ def get_values():
     f.close()
     return json.loads(json_conditions)
 
-def get_ext_config(cfgpath):
-	import ConfigParser
-	global myfile
-	global sendCPU
-	global sendPit
-	cfg = ConfigParser.ConfigParser()
-	cfg.read(cfgpath)
-	myfile = cfg.get('Local','Temp_File')
-	sendCPU = cfg.get('Options','sendCPU')
-	sendPit = cfg.get('Options','sendPit')
-
 def main():
-	global sendCPU
-	global sendPit
+	# --------- local Path ---------
+	configPath = './WlanThermoInitialstate.cfg'
+
+	# --------- local Tags ---------
+	force_data = False
+	NoSendCPU = False
+	NoSendPit = False
 
 	# -------------- Kommandozeilen Parameter --------------
 	for x in range(1, len(sys.argv)):
 		print('Parameter ' + str(x) + ': ' +sys.argv[x])
 		if sys.argv[x] == '/dT' or sys.argv[x] == '/fa' :
 			delete_loc_json()
+			if sys.argv[x] == '/dT':
+				exit()
 		elif sys.argv[x] == '/ft':
 			force_data = True
 		elif sys.argv[x] == '/nc':
-			sendCPU = True
+			NoSendCPU = True
 		elif sys.argv[x] == '/np':
-			sendPit = True
+			NoSendPit = True
 		elif '/eC' == sys.argv[x][:3]:
 			arg = sys.argv[x]
 			cfgpath= arg.split('=')
 			if os.path.isfile(cfgpath[1]):
-				get_ext_config(cfgpath[1])
+				configPath=cfgpath[1]
 			else:
 				print('Parameter /eC File %s not exists!' % cfgpath[1])
-			print('Path: ' + myfile)
-			print('CPU-Daten: ' + str(sendCPU))
-			print('Pit-Daten: ' + str(sendPit))
-			exit()
 		else:
 			print('Wrong Parameter %s in Commandline' % sys.argv[x])
 			exit()
 
+	# -------------- Konfiguration --------------
+	cfg = ConfigParser.ConfigParser()
+	cfg.read(configPath)
+	myfile = cfg.get('Local','Temp_File')
+	s = cfg.get('Options','notSendCPU')
+	sendCPU = (s.upper() != 'TRUE') and not NoSendCPU
+	s = cfg.get('Options','notSendPit')
+	sendPit = (s.upper() != 'TRUE') and not NoSendPit
+	BUCKET_NAME = cfg.get('Initialstate','BUCKET_NAME')
+	BUCKET_KEY = cfg.get('Initialstate','BUCKET_KEY')
+	ACCESS_KEY = cfg.get('Initialstate','ACCESS_KEY')
+	WlanThermoURL = cfg.get('WlanThermo','URL')
+
 	# -------------- WlanThermo --------------
 	#neue Daten lesen
-	values = get_values()
+	values = get_values(WlanThermoURL)
 
-	#alte Daten von file lesen
-	values_old = read_loc_json()
+	# -------------- alte Daten von file lesen --------------
+	values_old = read_loc_json(myfile)
 
-	# pruefen auf inhalt
+	# -------------- pruefen auf inhalt --------------
 	force_new_data = ('temp_unit' not in values_old)
 
-	# Manipulieren einzelner Werte
+	# -------------- Manipulieren einzelner Werte --------------
 	values['cpu_load'] = round(values['cpu_load'],2)
 	if values['temp_unit'] == 'celsius':
 		values['temp_unit'] = "C"
@@ -124,6 +107,9 @@ def main():
 		values['temp_unit'] = "F"
 
 	print('force: ' + str(force_data))
+	print(values)
+	exit()
+
 	#erneute Pruefung der aktualdaten zur weiteren ausfuehrung
 	if ('temp_unit' not in values):
 		print "Error! Wlanthermo app.php reading failed!"
