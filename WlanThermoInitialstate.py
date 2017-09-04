@@ -18,16 +18,16 @@ def read_loc_json(jsonPath):
 	f.close()
 	return data
 
-def write_loc_json(data):
+def write_loc_json(data, filepath):
 	# schreiben der Datendatei
-	with open(myfile, 'w') as f:
+	with open(filepath, 'w') as f:
 		json.dump(data, codecs.getwriter('utf-8')(f), ensure_ascii=False)
 	f.close()
 
-def delete_loc_json():
+def delete_loc_json(filepath):
 	## if file exists, delete it ##
-	if os.path.isfile(myfile):
-		os.remove(myfile)
+	if os.path.isfile(filepath):
+		os.remove(filepath)
 	else:    ## Show an error ##
 		print("Error: %s file not found" % myfile)
 		exit()
@@ -51,14 +51,14 @@ def main():
 	force_data = False
 	NoSendCPU = False
 	NoSendPit = False
+	delTemp= False
+	bExit = False
 
 	# -------------- Kommandozeilen Parameter --------------
 	for x in range(1, len(sys.argv)):
-		print('Parameter ' + str(x) + ': ' +sys.argv[x])
 		if sys.argv[x] == '/dT' or sys.argv[x] == '/fa' :
-			delete_loc_json()
-			if sys.argv[x] == '/dT':
-				exit()
+			delTemp = True
+			bExit = sys.argv[x] == '/dT'
 		elif sys.argv[x] == '/ft':
 			force_data = True
 		elif sys.argv[x] == '/nc':
@@ -89,6 +89,12 @@ def main():
 	ACCESS_KEY = cfg.get('Initialstate','ACCESS_KEY')
 	WlanThermoURL = cfg.get('WlanThermo','URL')
 
+	# -------------- Löschen der Temporaeren Datei --------------
+	if delTemp:
+		delete_loc_json(myfile)
+		if bExit:
+			exit()
+
 	# -------------- WlanThermo --------------
 	#neue Daten lesen
 	values = get_values(WlanThermoURL)
@@ -105,10 +111,6 @@ def main():
 		values['temp_unit'] = "C"
 	else:
 		values['temp_unit'] = "F"
-
-	print('force: ' + str(force_data))
-	print(values)
-	exit()
 
 	#erneute Pruefung der aktualdaten zur weiteren ausfuehrung
 	if ('temp_unit' not in values):
@@ -136,7 +138,6 @@ def main():
 							new_data = False
 
 						if new_data:
-							#print(str(x) + '_' + str(y) + ': ' + str(values[x][y]))
 							name = str(x) + '_' + str(y)
 							value = values[x][y]
 							streamer.log(name, value)
@@ -155,7 +156,6 @@ def main():
 							new_data= not (values[x][y][z] == values_old[x][y][z])
 
 						if new_data:
-							#print(str(x)[:2] + str('0'+ y)[:2] + '_' + str(z) + ': ' + str(values[x][y][z]))
 							name = str(x)[:2] + str('0'+ y)[:2] + '_' + str(z)
 							value = values[x][y][z]
 							streamer.log(name, value)
@@ -166,8 +166,8 @@ def main():
 						new_data = True
 					else:
 						new_data= not (values[x] == values_old[x])
+
 					if new_data:
-						#print(str(x) + ': ' + str(values[x]))
 						name = str(x)
 						value = values[x]
 						streamer.log(name, value)
@@ -180,14 +180,11 @@ def main():
 					new_data = False
 				else:
 					new_data= not (values[x] == values_old[x])
-
 				if new_data:
-						#print(str(x) + ': ' + str(values[x]))
 						name = str(x)
 						value = values[x]
 						streamer.log(name, value)
 
-	print('done')
 	try:
 		streamer.flush()
 	except Exception:
@@ -195,8 +192,7 @@ def main():
 		exit() # hier wird abgebrochen, damit der Zischenspeicher mit Initialstate synchron bleibt.
 
 	# schreiben der lokalen Datei
-	write_loc_json(values)
-
+	write_loc_json(values, myfile)
 
 if __name__ == "__main__":
     main()
