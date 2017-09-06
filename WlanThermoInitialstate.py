@@ -47,7 +47,7 @@ def get_values(WL_URL):
 
 def main():
 	# --------- local Path ---------
-	configPath = '/home/pi/WlanThermoInitialstate.cfg'
+	configPath = os.path.abspath(".") + '/WlanThermoInitialstate.cfg'
 
 	# --------- local Tags ---------
 	force_data = False
