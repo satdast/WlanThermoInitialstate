@@ -47,7 +47,7 @@ def get_values(WL_URL):
 
 def main():
 	# --------- local Path ---------
-	configPath = './WlanThermoInitialstate.cfg'
+	configPath = '/home/pi/WlanThermoInitialstate.cfg'
 
 	# --------- local Tags ---------
 	force_data = False
@@ -91,7 +91,7 @@ def main():
 	ACCESS_KEY = cfg.get('Initialstate','ACCESS_KEY')
 	WlanThermoURL = cfg.get('WlanThermo','URL')
 
-	# -------------- Löschen der Temporaeren Datei --------------
+	# -------------- Loeschen der Temporaeren Datei --------------
 	if delTemp:
 		delete_loc_json(myfile)
 		if bExit:
