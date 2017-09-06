@@ -77,9 +77,9 @@ def main():
 		else:
 			print('Wrong Parameter %s in Commandline' % sys.argv[x])
 			exit()
-	
+
 	#print('ConfigPath: ' + configPath)
-	
+
 	# -------------- Konfiguration --------------
 	cfg = ConfigParser.ConfigParser()
 	cfg.read(configPath)
@@ -115,6 +115,10 @@ def main():
 		values['temp_unit'] = "C"
 	else:
 		values['temp_unit'] = "F"
+
+	# -------------- Runden der Temparaturen --------------
+	for x in values['channel']:
+		values['channel'][x]['temp'] = round(values['channel'][x]['temp'],1)
 
 	#erneute Pruefung der aktualdaten zur weiteren ausfuehrung
 	if ('temp_unit' not in values):
