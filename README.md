@@ -21,6 +21,24 @@ löschen der Zwischenspeicher Datei
           External Credentials BenutzerDaten von externer Datei laden
 
 
+# Config Einstellungen:
+Achtung Strings "" eingeben
+[Initialstate]                Credentials
+BUCKET_NAME = xxxxxxxxxxxxxxxx          
+BUCKET_KEY = xxxxxxxxxxxxxxxx
+ACCESS_KEY = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+[Local]
+Temp_File = ./WTdata.json       Pfad zum Zwischenspeicher
+
+[Options]
+notSendCPU = FALSE              keine CPU-Daten senden
+notSendPit = FALSE              keine Pitmasterdaten senden
+
+[WlanThermo]
+URL = http://localhost/app.php  Pfad zum WlanThermo, falls das Script nicht lokal ausgeführt wird
+
+
 # ---------- depencies -----------------------
 run the following command to aktivate ISStreamer for Inital State:
 \curl -sSL https://get.initialstate.com/python -o - | sudo bash
