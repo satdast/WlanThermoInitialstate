@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 # coding=utf-8
 
 import sys
@@ -47,7 +47,7 @@ def get_values(WL_URL):
 
 def main():
 	# --------- local Path ---------
-	configPath = os.path.abspath(".") + '/WlanThermoInitialstate.cfg'
+	configPath = os.path.dirname(os.path.abspath(sys.argv[0])) + '/WlanThermoInitialstate.cfg'
 
 	# --------- local Tags ---------
 	force_data = False
@@ -77,7 +77,9 @@ def main():
 		else:
 			print('Wrong Parameter %s in Commandline' % sys.argv[x])
 			exit()
-
+	
+	#print('ConfigPath: ' + configPath)
+	
 	# -------------- Konfiguration --------------
 	cfg = ConfigParser.ConfigParser()
 	cfg.read(configPath)
