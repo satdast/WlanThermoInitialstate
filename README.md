@@ -29,7 +29,7 @@ BUCKET_KEY = xxxxxxxxxxxxxxxx
 ACCESS_KEY = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 [Local]
-Temp_File = ./WTdata.json       Pfad zum Zwischenspeicher
+Temp_File = /home/pi/WTdata.json       Pfad zum Zwischenspeicher
 
 [Options]
 notSendCPU = FALSE              keine CPU-Daten senden
